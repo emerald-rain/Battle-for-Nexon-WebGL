@@ -1,164 +1,90 @@
 <!DOCTYPE html>
 <html lang="en-us">
-
   <head>
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Battle for Nexon by malysh_ka</title>
+    <title>Unity WebGL Player | Battle for Nexon</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
-    <script type="module" crossorigin src="./assets/index-f9496d0e.js"></script>
-    <style>
-      body {
-        margin: 0;
-        padding: 0;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 100vh;
-        background-color: rgb(123, 140, 216);
-      }
-
-      header.top-strip {
-        width: 100%;
-        height: 50px;
-        background-color: #3F3366;
-        padding: 0px 20px;
-        position: fixed;
-        top: 0;
-        left: 0;
-        display: flex;
-        align-items: center;
-        color: white;
-      }
-
-      header.top-strip a {
-        font-size: 24px;
-        color: #FFF;
-        font-family: "Poppins", sans-serif;
-        font-style: normal;
-        font-weight: 600;
-        line-height: normal;
-        letter-spacing: -0.3px;
-        text-decoration: none;
-      }
-
-      footer {
-        display: flex;
-        width: 100%;
-        height: 50px;
-        padding: 9px 0px;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        background-color: #301c72;
-      }
-      
-      .mail-info {
-        display: flex;
-        height: 23px;
-        flex-direction: column;
-        justify-content: center;
-        flex-shrink: 0;
-        color: #FFF;
-        font-family: "Poppins", sans-serif;
-        font-size: 16px;
-        font-style: normal;
-        font-weight: 400;
-        line-height: normal;
-        text-decoration-line: underline;
-        letter-spacing: 0.5px;
-      }
-      
-      .footer-text {
-        display: flex;
-        height: 23px;
-        flex-direction: column;
-        justify-content: center;
-        flex-shrink: 0;
-        color: #FFF;
-        font-family: "Poppins", sans-serif;
-        font-size: 16px;
-        font-style: normal;
-        font-weight: 400;
-        line-height: normal;
-        letter-spacing: 0.3px;
-      }
-
-      #unity-container {
-        width: 100vw;
-        height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-      }
-
-      #unity-canvas {
-        width: 100%;
-        height: 100%;
-      }
-    </style>
+    <link rel="stylesheet" href="TemplateData/style.css">
   </head>
-
   <body>
-    <header class="top-strip">
-      <a class="logo-link" href="https://degenerousdao.com">⇦ Back to DegenerousDAO</a>
-    </header>
-
-    <footer>
-      <div class="mail-info">info@degenerousdao.com</div>
-      <div class="footer-text">©2023 by DeGenerous Society Inc.</div>
-    </footer>
-
     <div id="unity-container" class="unity-desktop">
-      <canvas id="unity-canvas"></canvas>
+      <canvas id="unity-canvas" width=960 height=540></canvas>
       <div id="unity-loading-bar">
+        <div id="unity-logo"></div>
         <div id="unity-progress-bar-empty">
           <div id="unity-progress-bar-full"></div>
         </div>
       </div>
+      <div id="unity-warning"> </div>
+      <div id="unity-footer">
+        <div id="unity-webgl-logo"></div>
+        <div id="unity-fullscreen-button"></div>
+        <div id="unity-build-title">Battle for Nexon</div>
+      </div>
     </div>
-    <script>
-      // Здесь находится внутренний скрипт игры. Оставляю его без изменений.
-      document.body.appendChild(Object.assign(document.createElement("script"), { type: "text/javascript", src: "./network.js" }));
-    </script>
-    
+    <script src="web3/index.js"></script>
     <script>
       var container = document.querySelector("#unity-container");
       var canvas = document.querySelector("#unity-canvas");
       var loadingBar = document.querySelector("#unity-loading-bar");
       var progressBarFull = document.querySelector("#unity-progress-bar-full");
+      var fullscreenButton = document.querySelector("#unity-fullscreen-button");
+      var warningBanner = document.querySelector("#unity-warning");
 
+      // Shows a temporary message banner/ribbon for a few seconds, or
+      // a permanent error message on top of the canvas if type=='error'.
+      // If type=='warning', a yellow highlight color is used.
+      // Modify or remove this function to customize the visually presented
+      // way that non-critical warnings and error messages are presented to the
+      // user.
       function unityShowBanner(msg, type) {
-        // Функция для отображения временных сообщений (баннеров) или ошибок.
-        // Удаляю вывод сообщений, чтобы убрать надписи под игрой.
+        function updateBannerVisibility() {
+          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+        }
+        var div = document.createElement('div');
+        div.innerHTML = msg;
+        warningBanner.appendChild(div);
+        if (type == 'error') div.style = 'background: red; padding: 10px;';
+        else {
+          if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
+          setTimeout(function() {
+            warningBanner.removeChild(div);
+            updateBannerVisibility();
+          }, 5000);
+        }
+        updateBannerVisibility();
       }
 
       var buildUrl = "Build";
-      var loaderUrl = buildUrl + "/r1.1.1 Now it's Battle for Nexon.loader.js";
+      var loaderUrl = buildUrl + "/r1.2 And this works well aha.loader.js";
       var config = {
-        dataUrl: buildUrl + "/r1.1.1 Now it's Battle for Nexon.data",
-        frameworkUrl: buildUrl + "/r1.1.1 Now it's Battle for Nexon.framework.js",
-        codeUrl: buildUrl + "/r1.1.1 Now it's Battle for Nexon.wasm",
+        dataUrl: buildUrl + "/r1.2 And this works well aha.data",
+        frameworkUrl: buildUrl + "/r1.2 And this works well aha.framework.js",
+        codeUrl: buildUrl + "/r1.2 And this works well aha.wasm",
         streamingAssetsUrl: "StreamingAssets",
         companyName: "sir_malysh empire",
         productName: "Battle for Nexon",
         productVersion: "1.1.1 ",
         showBanner: unityShowBanner,
       };
-      
+
+      // By default Unity keeps WebGL canvas render target size matched with
+      // the DOM size of the canvas element (scaled by window.devicePixelRatio)
+      // Set this to false if you want to decouple this synchronization from
+      // happening inside the engine, and you would instead like to size up
+      // the canvas DOM size and WebGL render target sizes yourself.
+      // config.matchWebGLToCanvasSize = false;
+
       if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-        // Отображаем сообщение на мобильных устройствах вместо запуска игры.
-        container.style.display = "none"; // Скрываем контейнер с игрой
-        var mobileWarning = document.createElement('div');
-        mobileWarning.innerHTML = "Sorry, the game is designed for PC.";
-        mobileWarning.style = "font-size: 24px; text-align: center; padding-top: 100px; color: red;";
-        document.body.appendChild(mobileWarning);
+        container.className = "unity-mobile";
+        // Avoid draining fillrate performance on mobile devices,
+        // and default/override low DPI mode on mobile browsers.
+        config.devicePixelRatio = 1;
+        unityShowBanner('WebGL builds are not supported on mobile devices.');
       } else {
-        canvas.style.width = "100%";
-        canvas.style.height = "90%";
+        canvas.style.width = "960px";
+        canvas.style.height = "540px";
       }
       loadingBar.style.display = "block";
 
@@ -169,6 +95,9 @@
           progressBarFull.style.width = 100 * progress + "%";
         }).then((unityInstance) => {
           loadingBar.style.display = "none";
+          fullscreenButton.onclick = () => {
+            unityInstance.SetFullscreen(1);
+          };
         }).catch((message) => {
           alert(message);
         });
